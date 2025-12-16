@@ -33,7 +33,7 @@ abstract class ApiController extends Controller
             ],
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['error']['errors'] = $errors;
         }
 
@@ -50,8 +50,10 @@ abstract class ApiController extends Controller
             'data' => $data->items(),
             'meta' => [
                 'pagination' => [
+                    'page' => $data->currentPage(),
                     'current_page' => $data->currentPage(),
                     'last_page' => $data->lastPage(),
+                    'total_pages' => $data->lastPage(),
                     'per_page' => $data->perPage(),
                     'total' => $data->total(),
                     'from' => $data->firstItem(),
@@ -61,4 +63,3 @@ abstract class ApiController extends Controller
         ]);
     }
 }
-

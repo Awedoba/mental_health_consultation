@@ -1,8 +1,9 @@
 <script setup lang="ts">
-const { isAuthenticated } = useAuth()
+const { token } = useAuth()
 
-// Redirect based on authentication
-if (isAuthenticated.value) {
+// Redirect based on token existence
+// The auth plugin will handle fetching user data
+if (token.value) {
   await navigateTo('/dashboard', { replace: true })
 } else {
   await navigateTo('/login', { replace: true })

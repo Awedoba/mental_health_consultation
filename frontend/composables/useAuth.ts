@@ -6,7 +6,7 @@ export const useAuth = () => {
     sameSite: 'strict',
     httpOnly: false, // Required for client-side access
   })
-  
+
   const user = useState<User | null>('user', () => null)
   const isAuthenticated = computed(() => !!token.value && !!user.value)
 
@@ -103,8 +103,8 @@ export const useAuth = () => {
   }
 
   return {
-    token: readonly(token),
-    user: readonly(user),
+    token,
+    user,
     isAuthenticated,
     login,
     logout,

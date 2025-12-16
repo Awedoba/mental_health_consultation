@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin routes
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::apiResource('users', \App\Http\Controllers\Api\Admin\UserController::class);
+        Route::post('users/{user}/password', [\App\Http\Controllers\Api\Admin\UserController::class, 'changePassword']);
         Route::post('users/{user}/reset-password', [\App\Http\Controllers\Api\Admin\UserController::class, 'resetPassword']);
         Route::post('users/{user}/unlock', [\App\Http\Controllers\Api\Admin\UserController::class, 'unlock']);
         Route::get('users/{user}/activity', [\App\Http\Controllers\Api\Admin\UserController::class, 'activity']);

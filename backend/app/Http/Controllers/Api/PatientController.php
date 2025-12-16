@@ -108,7 +108,8 @@ class PatientController extends ApiController
         }
 
         // Validate age (0-120 years)
-        $age = now()->diffInYears($request->date_of_birth);
+        $dob = \Carbon\Carbon::parse($request->date_of_birth);
+        $age = $dob->age;
         if ($age < 0 || $age > 120) {
             return $this->error('Invalid date of birth. Age must be between 0 and 120 years.', [], 422);
         }
@@ -238,6 +239,44 @@ class PatientController extends ApiController
             'occupation',
             'education_level',
         ]));
+
+        // Handle emergency contacts
+        if ($request->has('emergency_contacts')) {
+            $currentIds = collect($request->emergency_contacts)->pluck('id')->filter()->toArray();
+            
+            // Delete contacts that are no longer in the list
+            $patient->emergencyContacts()->whereNotIn('id', $currentIds)->delete();
+
+            foreach ($request->emergency_contacts as $contactData) {
+                if (isset($contactData['id'])) {
+                    // Update existing contact
+                    $contact = $patient->emergencyContacts()->find($contactData['id']);
+                    if ($contact) {
+                        $contact->update([
+                            'contact_name' => $contactData['contact_name'],
+                            'relationship' => $contactData['relationship'],
+                            'phone_number' => $contactData['phone_number'],
+                            'alternate_phone' => $contactData['alternate_phone'] ?? null,
+                            'email' => $contactData['email'] ?? null,
+                            'address' => $contactData['address'] ?? null,
+                            'is_primary' => $contactData['is_primary'] ?? false,
+                        ]);
+                    }
+                } else {
+                    // Create new contact
+                    EmergencyContact::create([
+                        'patient_id' => $patient->id,
+                        'contact_name' => $contactData['contact_name'],
+                        'relationship' => $contactData['relationship'],
+                        'phone_number' => $contactData['phone_number'],
+                        'alternate_phone' => $contactData['alternate_phone'] ?? null,
+                        'email' => $contactData['email'] ?? null,
+                        'address' => $contactData['address'] ?? null,
+                        'is_primary' => $contactData['is_primary'] ?? false,
+                    ]);
+                }
+            }
+        }
 
         $patient->load('emergencyContacts', 'createdBy');
 

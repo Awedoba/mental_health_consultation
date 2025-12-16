@@ -198,6 +198,42 @@ class UserController extends ApiController
     }
 
     /**
+     * Change user password (admin-initiated)
+     */
+    public function changePassword(Request $request, User $user): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'new_password' => [
+                'required',
+                'string',
+                'min:12',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[^a-zA-Z0-9]/',
+            ],
+        ], [
+            'new_password.min' => 'Password must be at least 12 characters long.',
+            'new_password.regex' => 'Password must contain uppercase, lowercase, number, and special character.',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error('Validation failed', $validator->errors()->toArray(), 422);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->password_changed_at = now();
+        $user->failed_login_attempts = 0;
+        $user->locked_until = null;
+        $user->save();
+
+        // Revoke all tokens to force re-login on all devices
+        $user->tokens()->delete();
+
+        return $this->success(null, 'Password changed successfully');
+    }
+
+    /**
      * Reset user password (admin-initiated)
      */
     public function resetPassword(Request $request, User $user): JsonResponse

@@ -47,9 +47,61 @@ class ConsultationController extends ApiController
             $query->where('session_type', $request->session_type);
         }
 
+        // Status filter (locked/unlocked)
+        if ($request->has('status')) {
+            if ($request->status === 'locked') {
+                $query->where('is_locked', true);
+            } elseif ($request->status === 'unlocked') {
+                $query->where('is_locked', false);
+            }
+        }
+
+        // Risk assessment filter
+        if ($request->has('risk_assessment')) {
+            $query->where('risk_assessment', $request->risk_assessment);
+        }
+
+        // Search filter (patient or clinician name)
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('patient', function ($patientQuery) use ($search) {
+                    $patientQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                })->orWhereHas('primaryClinician', function ($clinicianQuery) use ($search) {
+                    $clinicianQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                });
+            });
+        }
+
         $consultations = $query->orderBy('consultation_date', 'desc')
             ->orderBy('consultation_time', 'desc')
             ->paginate(20);
+
+        // Add computed fields for each consultation
+        $consultations->getCollection()->transform(function ($consultation) {
+            $patientName = 'N/A';
+            if ($consultation->patient) {
+                $patientName = trim(($consultation->patient->first_name ?? '').' '.($consultation->patient->last_name ?? ''));
+                if (empty($patientName)) {
+                    $patientName = 'N/A';
+                }
+            }
+
+            $clinicianName = 'N/A';
+            if ($consultation->primaryClinician) {
+                $clinicianName = trim(($consultation->primaryClinician->first_name ?? '').' '.($consultation->primaryClinician->last_name ?? ''));
+                if (empty($clinicianName)) {
+                    $clinicianName = 'N/A';
+                }
+            }
+
+            $consultation->patient_name = $patientName;
+            $consultation->clinician_name = $clinicianName;
+
+            return $consultation;
+        });
 
         return $this->paginated($consultations, 'Consultations retrieved successfully');
     }
@@ -147,23 +199,86 @@ class ConsultationController extends ApiController
         if ($user->role === 'clinician') {
             $hasAccess = $consultation->primary_clinician_id === $user->id
                 || $consultation->collaborators()->where('clinician_id', $user->id)->exists();
-            
-            if (!$hasAccess) {
+
+            if (! $hasAccess) {
                 return $this->error('Access denied', [], 403);
             }
         }
 
+        // Load required relationships
         $consultation->load([
             'patient',
             'primaryClinician',
             'collaborators.clinician',
-            'mentalStateExam',
-            'diagnoses',
-            'managementPlan',
-            'reviews.reviewingClinician',
         ]);
 
-        return $this->success($consultation);
+        // Load optional relationships - these may not exist if tables haven't been migrated
+        try {
+            $consultation->load(['mentalStateExam', 'diagnoses', 'managementPlan', 'reviews.reviewingClinician']);
+        } catch (\Exception $e) {
+            // Silently ignore if optional relationships fail (tables may not exist yet)
+        }
+
+        // Add computed fields for frontend compatibility
+        $patientName = 'N/A';
+        if ($consultation->patient) {
+            $patientName = trim(($consultation->patient->first_name ?? '').' '.($consultation->patient->last_name ?? ''));
+            if (empty($patientName)) {
+                $patientName = 'N/A';
+            }
+        }
+
+        $clinicianName = 'N/A';
+        if ($consultation->primaryClinician) {
+            $clinicianName = trim(($consultation->primaryClinician->first_name ?? '').' '.($consultation->primaryClinician->last_name ?? ''));
+            if (empty($clinicianName)) {
+                $clinicianName = 'N/A';
+            }
+        }
+
+        // Convert to array and add computed fields
+        $consultationData = $consultation->toArray();
+        $consultationData['patient_name'] = $patientName;
+        $consultationData['clinician_name'] = $clinicianName;
+
+        // Format date for form input (YYYY-MM-DD)
+        if ($consultation->consultation_date) {
+            $consultationData['consultation_date'] = $consultation->consultation_date->format('Y-m-d');
+        }
+
+        // Format time for form input (HH:MM)
+        if ($consultation->consultation_time) {
+            $consultationData['consultation_time'] = $consultation->consultation_time->format('H:i');
+        }
+
+        // Add relationship data as flat fields for frontend compatibility
+        // Mental state exam is a complex object - frontend can access via mental_state_exam relationship
+        // For now, we'll leave it as null if not needed in the simple edit form
+
+        // Get primary diagnosis if exists (for simple display)
+        if ($consultation->diagnoses && $consultation->diagnoses->isNotEmpty()) {
+            $primaryDiagnosis = $consultation->diagnoses->where('is_primary', true)->first()
+                ?? $consultation->diagnoses->first();
+            $consultationData['diagnosis'] = ($primaryDiagnosis->icd10_code ?? '').' - '.($primaryDiagnosis->diagnosis_description ?? '');
+        }
+
+        // Get treatment plan from management plan if exists
+        if ($consultation->managementPlan) {
+            $plan = $consultation->managementPlan;
+            $treatmentPlanParts = [];
+            if ($plan->treatment_goals) {
+                $treatmentPlanParts[] = 'Goals: '.$plan->treatment_goals;
+            }
+            if ($plan->clinical_recommendations) {
+                $treatmentPlanParts[] = 'Recommendations: '.$plan->clinical_recommendations;
+            }
+            if ($plan->follow_up_notes) {
+                $treatmentPlanParts[] = 'Follow-up: '.$plan->follow_up_notes;
+            }
+            $consultationData['treatment_plan'] = implode("\n\n", $treatmentPlanParts);
+        }
+
+        return $this->success($consultationData);
     }
 
     /**
@@ -177,8 +292,8 @@ class ConsultationController extends ApiController
         if ($user->role === 'clinician') {
             $hasAccess = $consultation->primary_clinician_id === $user->id
                 || $consultation->collaborators()->where('clinician_id', $user->id)->exists();
-            
-            if (!$hasAccess) {
+
+            if (! $hasAccess) {
                 return $this->error('Access denied', [], 403);
             }
         }

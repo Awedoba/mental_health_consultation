@@ -86,7 +86,7 @@
               </div>
             </div>
 
-            <div v-if="error" class="mt-4 text-red-600">{{ error }}</div>
+            <FormError :error="error" :errors="validationErrors" />
 
             <div class="mt-6 flex justify-end space-x-4">
               <NuxtLink
@@ -116,8 +116,8 @@ definePageMeta({
   middleware: ['auth', 'role'],
 })
 
-const config = useRuntimeConfig()
-const { token } = useAuth()
+const { create } = useUsers()
+const { showSuccess } = useErrorHandler()
 const router = useRouter()
 
 const form = reactive({
@@ -125,7 +125,7 @@ const form = reactive({
   email: '',
   first_name: '',
   last_name: '',
-  role: 'clinician',
+  role: 'clinician' as 'admin' | 'clinician',
   password: '',
   professional_title: '',
   license_number: '',
@@ -133,29 +133,21 @@ const form = reactive({
 
 const loading = ref(false)
 const error = ref('')
+const validationErrors = ref<Record<string, string[]> | null>(null)
 
 const handleSubmit = async () => {
   loading.value = true
   error.value = ''
+  validationErrors.value = null
 
-  try {
-    const { data } = await $fetch<{
-      data: { user: any }
-      message: string
-    }>(`${config.public.apiBase}/admin/users`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-      body: form,
-    })
+  const result = await create(form)
 
+  if (result.success) {
+    showSuccess('User created successfully')
     router.push('/admin/users')
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to create user'
-    if (err.data?.error?.errors) {
-      console.error('Validation errors:', err.data.error.errors)
-    }
+  } else {
+    error.value = result.error || 'Failed to create user'
+    validationErrors.value = result.errors || null
   }
 
   loading.value = false

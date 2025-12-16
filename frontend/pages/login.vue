@@ -37,9 +37,7 @@
           </div>
         </div>
 
-        <div v-if="error" class="text-red-600 text-sm text-center">
-          {{ error }}
-        </div>
+        <FormError v-if="error" :error="error" />
 
         <div>
           <button
@@ -62,6 +60,7 @@ definePageMeta({
 })
 
 const { login } = useAuth()
+const { showSuccess } = useErrorHandler()
 const router = useRouter()
 
 const form = reactive({
@@ -79,6 +78,7 @@ const handleLogin = async () => {
   const result = await login(form.username, form.password)
 
   if (result.success) {
+    showSuccess('Login successful')
     router.push('/dashboard')
   } else {
     error.value = result.error || 'Login failed'

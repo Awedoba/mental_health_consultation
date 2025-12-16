@@ -18,111 +18,90 @@ class DashboardController extends ApiController
     {
         $user = $request->user();
 
+        // Get basic stats
+        $stats = $this->getStats($user);
+        
+        // Get recent consultations
+        $recentConsultations = $this->getRecentConsultations($user);
+
+        return $this->success([
+            'stats' => $stats,
+            'recentConsultations' => $recentConsultations,
+        ], 'Dashboard data retrieved');
+    }
+
+    /**
+     * Get statistics based on user role
+     */
+    private function getStats($user): array
+    {
         if ($user->role === 'admin') {
-            return $this->adminDashboard($request);
+            return [
+                'totalPatients' => Patient::where('is_active', true)->count(),
+                'consultationsThisMonth' => Consultation::whereMonth('consultation_date', now()->month)
+                    ->whereYear('consultation_date', now()->year)
+                    ->count(),
+                'pendingReviews' => Consultation::where('is_locked', false)
+                    ->where('consultation_date', '<', now()->subDays(7))
+                    ->count(),
+                'activeClinicians' => User::where('role', 'clinician')
+                    ->where('is_active', true)
+                    ->count(),
+            ];
         }
 
-        return $this->clinicianDashboard($request);
+        // Clinician stats
+        return [
+            'totalPatients' => Patient::whereHas('consultations', function ($q) use ($user) {
+                $q->where('primary_clinician_id', $user->id);
+            })->count(),
+            'consultationsThisMonth' => Consultation::where('primary_clinician_id', $user->id)
+                ->whereMonth('consultation_date', now()->month)
+                ->whereYear('consultation_date', now()->year)
+                ->count(),
+            'pendingReviews' => Consultation::where('primary_clinician_id', $user->id)
+                ->where('is_locked', false)
+                ->where('consultation_date', '<', now()->subDays(7))
+                ->count(),
+            'activeClinicians' => 0, // Not shown to clinicians
+        ];
     }
 
     /**
-     * Admin dashboard metrics
+     * Get recent consultations
      */
-    private function adminDashboard(Request $request): JsonResponse
+    private function getRecentConsultations($user): array
     {
-        $totalPatients = Patient::where('is_active', true)->count();
-        $activeClinicians = User::where('role', 'clinician')->where('is_active', true)->count();
-        $newPatients30Days = Patient::where('created_at', '>=', now()->subDays(30))->count();
-        $consultationsThisMonth = Consultation::whereMonth('consultation_date', now()->month)
-            ->whereYear('consultation_date', now()->year)
-            ->count();
+        $query = Consultation::with(['patient', 'primaryClinician'])
+            ->orderBy('consultation_date', 'desc')
+            ->orderBy('consultation_time', 'desc')
+            ->limit(10);
 
-        // Consultations by clinician (last 30 days)
-        $consultationsByClinician = Consultation::where('consultation_date', '>=', now()->subDays(30))
-            ->selectRaw('primary_clinician_id, count(*) as count')
-            ->groupBy('primary_clinician_id')
-            ->with('primaryClinician:id,first_name,last_name')
-            ->get();
+        // Filter by clinician if not admin
+        if ($user->role !== 'admin') {
+            $query->where('primary_clinician_id', $user->id);
+        }
 
-        // Top diagnoses (last 90 days)
-        $topDiagnoses = \App\Models\Diagnosis::whereHas('consultation', function ($q) {
-            $q->where('consultation_date', '>=', now()->subDays(90));
-        })
-            ->where('is_primary', true)
-            ->selectRaw('icd10_code, diagnosis_description, count(*) as count')
-            ->groupBy('icd10_code', 'diagnosis_description')
-            ->orderBy('count', 'desc')
-            ->limit(10)
-            ->get();
-
-        return $this->success([
-            'total_patients' => $totalPatients,
-            'active_clinicians' => $activeClinicians,
-            'new_patients_30_days' => $newPatients30Days,
-            'consultations_this_month' => $consultationsThisMonth,
-            'consultations_by_clinician' => $consultationsByClinician,
-            'top_diagnoses' => $topDiagnoses,
-        ], 'Dashboard data retrieved');
-    }
-
-    /**
-     * Clinician dashboard metrics
-     */
-    private function clinicianDashboard(Request $request): JsonResponse
-    {
-        $user = $request->user();
-
-        // Own patients
-        $activePatients = Patient::where('created_by', $user->id)
-            ->where('is_active', true)
-            ->whereHas('consultations', function ($q) {
-                $q->where('consultation_date', '>=', now()->subYear());
-            })
-            ->count();
-
-        // Consultations this month
-        $consultationsThisMonth = Consultation::where('primary_clinician_id', $user->id)
-            ->whereMonth('consultation_date', now()->month)
-            ->whereYear('consultation_date', now()->year)
-            ->count();
-
-        // Average daily consultations (last 30 days)
-        $dailyConsultations = Consultation::where('primary_clinician_id', $user->id)
-            ->where('consultation_date', '>=', now()->subDays(30))
-            ->selectRaw('consultation_date, count(*) as count')
-            ->groupBy('consultation_date')
-            ->get();
-
-        $avgDaily = $dailyConsultations->count() > 0 
-            ? round($dailyConsultations->sum('count') / 30, 2) 
-            : 0;
-
-        // High-risk patients
-        $highRiskPatients = Consultation::where('primary_clinician_id', $user->id)
-            ->where('risk_assessment', 'high')
-            ->where('consultation_date', '>=', now()->subDays(90))
-            ->distinct('patient_id')
-            ->count('patient_id');
-
-        // Top diagnoses (last 12 months)
-        $topDiagnoses = \App\Models\Diagnosis::whereHas('consultation', function ($q) use ($user) {
-            $q->where('primary_clinician_id', $user->id)
-                ->where('consultation_date', '>=', now()->subYear());
-        })
-            ->where('is_primary', true)
-            ->selectRaw('icd10_code, diagnosis_description, count(*) as count')
-            ->groupBy('icd10_code', 'diagnosis_description')
-            ->orderBy('count', 'desc')
-            ->limit(10)
-            ->get();
-
-        return $this->success([
-            'active_patients' => $activePatients,
-            'consultations_this_month' => $consultationsThisMonth,
-            'avg_daily_consultations' => $avgDaily,
-            'high_risk_patients' => $highRiskPatients,
-            'top_diagnoses' => $topDiagnoses,
-            'daily_consultations' => $dailyConsultations,
-        ], 'Dashboard data retrieved');
+        return $query->get()->map(function ($consultation) {
+            return [
+                'id' => $consultation->id,
+                'patient_id' => $consultation->patient_id,
+                'patient_name' => $consultation->patient 
+                    ? $consultation->patient->first_name . ' ' . $consultation->patient->last_name
+                    : 'N/A',
+                'primary_clinician_id' => $consultation->primary_clinician_id,
+                'clinician_name' => $consultation->primaryClinician
+                    ? $consultation->primaryClinician->first_name . ' ' . $consultation->primaryClinician->last_name
+                    : 'N/A',
+                'consultation_date' => $consultation->consultation_date,
+                'consultation_time' => $consultation->consultation_time,
+                'session_type' => $consultation->session_type,
+                'chief_complaint' => $consultation->chief_complaint,
+                'risk_assessment' => $consultation->risk_assessment,
+                'is_locked' => $consultation->is_locked,
+                'created_at' => $consultation->created_at->toISOString(),
+                'updated_at' => $consultation->updated_at->toISOString(),
+            ];
+        })->toArray();
     }
 }

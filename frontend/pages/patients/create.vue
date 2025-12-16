@@ -6,6 +6,8 @@
 
         <div class="bg-white shadow rounded-lg p-6">
           <form @submit.prevent="handleSubmit">
+            <FormError :error="error" :errors="validationErrors" />
+            
             <div class="grid grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700">First Name *</label>
@@ -171,8 +173,6 @@
               </div>
             </div>
 
-            <div v-if="error" class="mt-4 text-red-600">{{ error }}</div>
-
             <div class="mt-6 flex justify-end space-x-4">
               <NuxtLink
                 to="/patients"
@@ -202,6 +202,7 @@ definePageMeta({
 })
 
 const { create } = usePatients()
+const { showSuccess } = useErrorHandler()
 const router = useRouter()
 
 const form = reactive({
@@ -229,20 +230,21 @@ const form = reactive({
 
 const loading = ref(false)
 const error = ref('')
+const validationErrors = ref<Record<string, string[]> | null>(null)
 
 const handleSubmit = async () => {
   loading.value = true
   error.value = ''
+  validationErrors.value = null
 
   const result = await create(form)
 
   if (result.success) {
+    showSuccess('Patient created successfully')
     router.push(`/patients/${result.data.id}`)
   } else {
     error.value = result.error || 'Failed to create patient'
-    if (result.errors) {
-      console.error('Validation errors:', result.errors)
-    }
+    validationErrors.value = result.errors || null
   }
 
   loading.value = false

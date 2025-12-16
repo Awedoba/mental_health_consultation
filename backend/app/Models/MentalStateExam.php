@@ -11,7 +11,10 @@ class MentalStateExam extends Model
 {
     use HasFactory;
 
+    protected $table = 'mental_state_exam';
+
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -79,7 +82,7 @@ class MentalStateExam extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->id)) {
                 $model->id = (string) Str::uuid();
