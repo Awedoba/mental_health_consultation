@@ -111,6 +111,66 @@
           </div>
 
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Past Psychiatric History</label>
+            <textarea
+              v-model="form.past_psychiatric_history"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Previous psychiatric diagnoses, treatments, hospitalizations"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Past Medical History</label>
+            <textarea
+              v-model="form.medical_history"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Relevant medical conditions, surgeries, medications"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Personal History</label>
+            <textarea
+              v-model="form.personal_history"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Personal background, development, life events"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Occupational and/or Marital History</label>
+            <textarea
+              v-model="form.occupational_marital_history"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Work history, marital status, relationships"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Family History</label>
+            <textarea
+              v-model="form.family_history"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Family psychiatric and medical history"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Substance Abuse History</label>
+            <textarea
+              v-model="form.substance_abuse_history"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Alcohol, drugs, tobacco use history"
+            ></textarea>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Risk Assessment *</label>
             <select
               v-model="form.risk_assessment"
@@ -199,6 +259,12 @@ const form = ref({
   session_type: 'follow_up',
   chief_complaint: '',
   history_present_illness: '',
+  past_psychiatric_history: '',
+  medical_history: '',
+  personal_history: '',
+  occupational_marital_history: '',
+  family_history: '',
+  substance_abuse_history: '',
   risk_assessment: 'low' as 'low' | 'moderate' | 'high',
   clinical_summary: '',
 })

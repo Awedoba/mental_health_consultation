@@ -36,6 +36,18 @@ This documentation set provides comprehensive specifications for a Mental Health
 8. **[MVP Boundaries](docs/08-mvp-boundaries.md)**  
    Clear scope definitions for MVP and future enhancements
 
+9. **[Implementation Guide](docs/09-implementation-guide.md)**  
+   Technical implementation details, architecture, API reference, and recent improvements
+
+10. **[Implementation Plan - Enhanced Requirements](docs/10-implementation-plan.md)**  
+   Comprehensive plan for implementing enhanced features including billing, prescriptions, home visits, and updated patient/consultation forms
+
+11. **[Deployment Guide](docs/11-deployment-guide.md)**  
+   Step-by-step instructions for deploying the application to production
+
+12. **[Testing Checklist](docs/12-testing-checklist.md)**  
+   Comprehensive testing checklist for all features and modules
+
 ## Quick Start
 
 ### For Project Stakeholders
@@ -43,9 +55,10 @@ Start with [System Overview](docs/01-system-overview.md) to understand the platf
 
 ### For Developers
 1. Review [System Overview](docs/01-system-overview.md)
-2. Study [Data Model](docs/03-data-model.md) for database design
-3. Examine [Feature Breakdown](docs/02-feature-breakdown.md) for implementation details
-4. Check [Security & Compliance](docs/07-security-compliance.md) for security requirements
+2. Read [Implementation Guide](docs/09-implementation-guide.md) for technical architecture
+3. Study [Data Model](docs/03-data-model.md) for database design
+4. Examine [Feature Breakdown](docs/02-feature-breakdown.md) for implementation details
+5. Check [Security & Compliance](docs/07-security-compliance.md) for security requirements
 
 ### For Clinical Stakeholders
 1. Read [System Overview](docs/01-system-overview.md)
@@ -103,14 +116,29 @@ See [MVP Boundaries](docs/08-mvp-boundaries.md) for complete details.
 > [!NOTE]
 > This application is **NOT** designed for patient self-service. All access is restricted to credentialed healthcare professionals.
 
-## Technology Considerations
+## Technology Stack
 
-This documentation is technology-agnostic but assumes:
-- Web-based application accessible via modern browsers
-- Secure database with encryption at rest
-- TLS/SSL for data in transit
-- Role-based authentication and authorization
-- Audit logging capabilities
+### Frontend
+- **Framework**: Nuxt 4.2.2 with Vue 3.5.25
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4.x
+- **Package Manager**: pnpm
+
+### Backend
+- **Framework**: Laravel 12
+- **Language**: PHP 8.3.28
+- **Authentication**: Laravel Sanctum 4.x
+- **Database**: SQLite (development), supports PostgreSQL/MySQL
+- **Testing**: Pest 4.x, PHPUnit 12.x
+
+### Architecture
+- **API**: RESTful JSON API
+- **Authentication**: JWT tokens via Laravel Sanctum
+- **State Management**: Vue 3 Composition API with composables
+- **Error Handling**: Centralized error handling system
+- **Form Validation**: Field-specific validation error display
+
+See [Implementation Guide](docs/09-implementation-guide.md) for detailed technical documentation.
 
 ## Getting Help
 

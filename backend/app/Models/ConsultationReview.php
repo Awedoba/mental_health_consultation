@@ -20,6 +20,9 @@ class ConsultationReview extends Model
         'reviewing_clinician_id',
         'review_date',
         'visit_type',
+        'presenting_complaints',
+        'oe',
+        'odq',
         'bp_systolic',
         'bp_diastolic',
         'heart_rate',
@@ -42,6 +45,7 @@ class ConsultationReview extends Model
         'goals_progress',
         'new_interventions',
         'next_steps',
+        'recommendation',
     ];
 
     protected $casts = [

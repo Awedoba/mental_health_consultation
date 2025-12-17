@@ -69,18 +69,18 @@
                 />
               </div>
               <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700">Address Line 1 *</label>
+                <label class="block text-sm font-medium text-gray-700">Landmark *</label>
                 <input
-                  v-model="form.address_line1"
+                  v-model="form.landmark"
                   type="text"
-                  required
                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Enter landmark or address"
                 />
               </div>
-              <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-700">Address Line 2</label>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Town *</label>
                 <input
-                  v-model="form.address_line2"
+                  v-model="form.town"
                   type="text"
                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                 />
@@ -120,6 +120,102 @@
                   required
                   class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                 />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Marital Status</label>
+                <select
+                  v-model="form.marital_status"
+                  class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="">Select...</option>
+                  <option value="single">Single</option>
+                  <option value="married">Married</option>
+                  <option value="divorced">Divorced</option>
+                  <option value="widowed">Widowed</option>
+                  <option value="separated">Separated</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Occupation</label>
+                <input
+                  v-model="form.occupation"
+                  type="text"
+                  class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Education Level</label>
+                <select
+                  v-model="form.education_level"
+                  class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="">Select...</option>
+                  <option value="none">None</option>
+                  <option value="primary">Primary</option>
+                  <option value="secondary">Secondary</option>
+                  <option value="undergraduate">Undergraduate</option>
+                  <option value="graduate">Graduate</option>
+                  <option value="doctoral">Doctoral</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Religion</label>
+                <input
+                  v-model="form.religion"
+                  type="text"
+                  class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">NHIS Status *</label>
+                <select
+                  v-model="form.nhis_status"
+                  required
+                  class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="">Select...</option>
+                  <option value="insured">Insured</option>
+                  <option value="uninsured">Uninsured</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Assessment Time</label>
+                <input
+                  v-model="form.assessment_time"
+                  type="time"
+                  class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <h3 class="text-lg font-medium mb-4">Relative Information</h3>
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Relative Name</label>
+                  <input
+                    v-model="form.relative_name"
+                    type="text"
+                    class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Relationship</label>
+                  <input
+                    v-model="form.relative_relationship"
+                    type="text"
+                    class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    placeholder="e.g., Spouse, Parent, Sibling"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Relative Phone</label>
+                  <input
+                    v-model="form.relative_phone"
+                    type="tel"
+                    class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
               </div>
             </div>
 
@@ -212,12 +308,21 @@ const form = reactive({
   gender: '',
   phone_number: '',
   email: '',
-  address_line1: '',
-  address_line2: '',
+  landmark: '',
+  town: '',
   city: '',
   state_province: '',
   postal_code: '',
   country: 'USA',
+  marital_status: '',
+  occupation: '',
+  education_level: '',
+  religion: '',
+  nhis_status: 'uninsured',
+  relative_name: '',
+  relative_relationship: '',
+  relative_phone: '',
+  assessment_time: '',
   emergency_contacts: [
     {
       contact_name: '',

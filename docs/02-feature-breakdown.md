@@ -65,10 +65,13 @@ Comprehensive patient registry enabling clinicians to create, view, update, and 
 
 ### User Interface Features
 
-- **Advanced Search**: Search by name, patient ID, phone, DOB
+- **Advanced Search**: Search by name, patient ID, phone, DOB with debouncing
 - **Filters**: Active vs. archived patients, age range, last consultation date
 - **Patient List View**: Sortable table with key demographics
 - **Patient Detail View**: Full profile with tabs for demographics, contacts, and consultation history
+- **Form Pre-population**: Edit forms automatically load existing patient data including emergency contacts
+- **Date Formatting**: Proper date formatting for date of birth inputs
+- **Validation Error Display**: Field-specific validation errors displayed clearly
 
 ---
 
@@ -153,10 +156,15 @@ Core clinical documentation module for creating and managing consultation sessio
 ### User Interface Features
 
 - **Quick Patient Selection**: Type-ahead search for patient
-- **Template Library**: Pre-defined templates for common consultation types
-- **Copy Forward**: Option to copy previous consultation notes as starting point
-- **Print/Export**: Generate PDF consultation summary
+- **Search & Filtering**: Search by patient/clinician name, filter by status and risk level
+- **Debounced Search**: Optimized search with 300-500ms delay to reduce API calls
+- **Pagination**: Efficient pagination with proper metadata display
+- **Template Library**: Pre-defined templates for common consultation types (future enhancement)
+- **Copy Forward**: Option to copy previous consultation notes as starting point (future enhancement)
+- **Print/Export**: Generate PDF consultation summary (future enhancement)
 - **Timeline View**: See all consultations for a patient in chronological order
+- **Form Pre-population**: Edit forms automatically load existing consultation data
+- **Date/Time Formatting**: Proper formatting for date and time inputs
 
 ---
 

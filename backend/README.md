@@ -7,19 +7,68 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+# Mental Health Consultation - Backend
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+RESTful API backend built with Laravel 12 for the Mental Health Consultation Web App.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Technology Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Framework**: Laravel 12
+- **Language**: PHP 8.3.28
+- **Authentication**: Laravel Sanctum 4.x
+- **Database**: SQLite (development), supports PostgreSQL/MySQL
+- **Testing**: Pest 4.x, PHPUnit 12.x
+- **Code Style**: Laravel Pint
+
+## API Structure
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/password/change` - Change password
+
+### Resources
+- `GET|POST|PUT|DELETE /api/patients` - Patient management
+- `GET|POST|PUT|DELETE /api/consultations` - Consultation management
+- `GET|POST|PUT|DELETE /api/admin/users` - User management (admin only)
+- `GET /api/dashboard` - Dashboard statistics
+
+### Key Features
+
+- **RESTful API**: Standard HTTP methods and status codes
+- **JWT Authentication**: Token-based authentication via Sanctum
+- **Role-Based Access**: Admin and Clinician roles with different permissions
+- **Computed Fields**: API automatically includes computed fields (e.g., `patient_name`, `clinician_name`)
+- **Search & Filtering**: Search by patient/clinician name, filter by status/risk
+- **Pagination**: Standardized pagination metadata
+- **Error Handling**: Consistent error response format with validation details
+- **Audit Logging**: Comprehensive activity tracking
+
+## API Response Format
+
+### Success Response
+```json
+{
+  "message": "Success message",
+  "data": { /* resource data */ },
+  "meta": { /* pagination or metadata */ }
+}
+```
+
+### Error Response
+```json
+{
+  "error": {
+    "message": "Error message",
+    "errors": {
+      "field_name": ["Validation error message"]
+    }
+  }
+}
+```
+
+See [Implementation Guide](../docs/09-implementation-guide.md) for detailed API documentation.
 
 ## Learning Laravel
 

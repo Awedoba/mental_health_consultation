@@ -1,6 +1,38 @@
-# Nuxt Minimal Starter
+# Mental Health Consultation - Frontend
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Frontend application built with Nuxt 4, Vue 3, and TypeScript for the Mental Health Consultation Web App.
+
+## Technology Stack
+
+- **Framework**: Nuxt 4.2.2
+- **UI Library**: Vue 3.5.25
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4.x
+- **Package Manager**: pnpm
+
+## Architecture
+
+### Key Features
+
+- **Composable-based API layer**: All API interactions through composables (`useAuth`, `usePatients`, `useConsultations`, etc.)
+- **Reusable components**: `FormError`, `LoadingSpinner`, `Toast`, `EmptyState`, `ConfirmModal`
+- **Middleware**: Authentication and role-based access control
+- **Error handling**: Centralized error handling with `useErrorHandler`
+- **Form validation**: Field-specific validation error display
+- **Search debouncing**: Optimized search with 300-500ms delay
+- **Responsive design**: Mobile-friendly sidebar navigation
+
+### Project Structure
+
+- `composables/`: Shared logic for API calls and state management
+- `components/`: Reusable Vue components
+- `pages/`: File-based routing (Nuxt pages)
+- `layouts/`: Page layouts (default layout with sidebar)
+- `middleware/`: Route middleware (auth, role)
+- `types/`: TypeScript type definitions
+- `plugins/`: Nuxt plugins (auto-fetch user on init)
+
+See [Implementation Guide](../docs/09-implementation-guide.md) for detailed architecture documentation.
 
 ## Setup
 

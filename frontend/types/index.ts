@@ -23,15 +23,23 @@ export interface Patient {
   gender: string
   phone_number: string
   email?: string
-  address_line1: string
+  address_line1?: string
   address_line2?: string
+  landmark?: string
   city: string
   state_province: string
   postal_code: string
   country: string
+  town?: string
   marital_status?: string
   occupation?: string
   education_level?: string
+  religion?: string
+  nhis_status?: 'insured' | 'uninsured'
+  relative_name?: string
+  relative_relationship?: string
+  relative_phone?: string
+  assessment_time?: string
   is_active: boolean
   created_at: string
   updated_at: string
@@ -111,5 +119,86 @@ export interface DashboardStats {
 export interface DashboardResponse {
   stats: DashboardStats
   recentConsultations: Consultation[]
+}
+
+export interface Billing {
+  id: string
+  patient_id: string
+  consultation_id?: string
+  billing_date: string
+  service_type: 'consultation' | 'home_visit' | 'medication' | 'other'
+  amount: number
+  nhis_covered: boolean
+  nhis_amount?: number
+  patient_amount?: number
+  payment_status: 'pending' | 'partial' | 'paid' | 'waived'
+  payment_date?: string
+  payment_method?: 'cash' | 'mobile_money' | 'bank_transfer' | 'nhis'
+  invoice_number: string
+  notes?: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+  patient?: Patient
+  consultation?: Consultation
+}
+
+export interface Medication {
+  id: string
+  name: string
+  generic_name?: string
+  dosage_form?: 'tablet' | 'capsule' | 'syrup' | 'injection' | 'other'
+  strength?: string
+  category?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Prescription {
+  id: string
+  patient_id: string
+  consultation_id?: string
+  prescription_date: string
+  prescribed_by: string
+  medication_id: string
+  dosage: string
+  frequency: string
+  duration: string
+  quantity?: number
+  instructions?: string
+  refills: number
+  is_active: boolean
+  start_date?: string
+  end_date?: string
+  created_at: string
+  updated_at: string
+  patient?: Patient
+  consultation?: Consultation
+  medication?: Medication
+  prescribed_by_user?: User
+}
+
+export interface HomeVisit {
+  id: string
+  patient_id?: string
+  client_name: string
+  age?: number
+  sex?: 'male' | 'female' | 'other'
+  community_location: string
+  contact: string
+  visit_date: string
+  visit_time?: string
+  clinician_id: string
+  diagnosis_condition?: string
+  medication_prescription?: string
+  observations?: string
+  impression?: string
+  management?: string
+  recommendation?: string
+  created_at: string
+  updated_at: string
+  patient?: Patient
+  clinician?: User
 }
 

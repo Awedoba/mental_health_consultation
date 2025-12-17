@@ -130,6 +130,71 @@
               <option value="doctoral">Doctoral</option>
             </select>
           </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
+            <input
+              v-model="form.religion"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">NHIS Status *</label>
+            <select
+              v-model="form.nhis_status"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">Select status</option>
+              <option value="insured">Insured</option>
+              <option value="uninsured">Uninsured</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Assessment Time</label>
+            <input
+              v-model="form.assessment_time"
+              type="time"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Relative Information Section -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Relative Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Relative Name</label>
+            <input
+              v-model="form.relative_name"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Relationship</label>
+            <input
+              v-model="form.relative_relationship"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g., Spouse, Parent, Sibling"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Relative Phone</label>
+            <input
+              v-model="form.relative_phone"
+              type="tel"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
         </div>
       </div>
 
@@ -138,19 +203,19 @@
         <h2 class="text-xl font-semibold mb-4">Address</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
             <input
-              v-model="form.address_line1"
+              v-model="form.landmark"
               type="text"
-              required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter landmark or address"
             />
           </div>
 
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Town</label>
             <input
-              v-model="form.address_line2"
+              v-model="form.town"
               type="text"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
@@ -353,6 +418,19 @@ onMounted(async () => {
       return date.toISOString().split('T')[0]
     }
 
+    // Format time for input (HH:MM)
+    const formatTime = (timeString: string | null | undefined): string => {
+      if (!timeString) return ''
+      // If already in HH:MM format, return as is
+      if (typeof timeString === 'string' && /^\d{2}:\d{2}$/.test(timeString)) {
+        return timeString
+      }
+      // Try to parse and format
+      const time = new Date(`2000-01-01T${timeString}`)
+      if (isNaN(time.getTime())) return ''
+      return timeString.substring(0, 5) // Extract HH:MM
+    }
+
     // Populate form with existing data
     form.value = {
       first_name: result.data.first_name || '',
@@ -362,8 +440,8 @@ onMounted(async () => {
       gender: result.data.gender || '',
       phone_number: result.data.phone_number || '',
       email: result.data.email || '',
-      address_line1: result.data.address_line1 || '',
-      address_line2: result.data.address_line2 || '',
+      landmark: result.data.landmark || '',
+      town: result.data.town || '',
       city: result.data.city || '',
       state_province: result.data.state_province || '',
       postal_code: result.data.postal_code || '',
@@ -371,6 +449,12 @@ onMounted(async () => {
       marital_status: result.data.marital_status || '',
       occupation: result.data.occupation || '',
       education_level: result.data.education_level || '',
+      religion: result.data.religion || '',
+      nhis_status: result.data.nhis_status || 'uninsured',
+      relative_name: result.data.relative_name || '',
+      relative_relationship: result.data.relative_relationship || '',
+      relative_phone: result.data.relative_phone || '',
+      assessment_time: formatTime(result.data.assessment_time),
       emergency_contacts: result.data.emergency_contacts ? result.data.emergency_contacts.map((c: any) => ({
         id: c.id,
         contact_name: c.contact_name || '',

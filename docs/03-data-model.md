@@ -313,15 +313,22 @@ erDiagram
 | `gender` | ENUM('male', 'female', 'non_binary', 'prefer_not_say', 'other') | NOT NULL | - | Gender identity |
 | `phone_number` | VARCHAR(20) | NOT NULL | - | Primary phone |
 | `email` | VARCHAR(100) | NULL | - | Email address |
-| `address_line1` | VARCHAR(100) | NOT NULL | - | Street address |
+| `landmark` | VARCHAR(200) | NULL | - | Landmark or traceable address |
 | `address_line2` | VARCHAR(100) | NULL | - | Apt/Suite |
 | `city` | VARCHAR(50) | NOT NULL | - | City |
+| `town` | VARCHAR(100) | NULL | - | Town |
 | `state_province` | VARCHAR(50) | NOT NULL | - | State/province |
 | `postal_code` | VARCHAR(20) | NOT NULL | - | Postal/ZIP code |
 | `country` | VARCHAR(50) | NOT NULL | - | Country |
 | `marital_status` | ENUM('single', 'married', 'divorced', 'widowed', 'separated') | NULL | - | Marital status |
 | `occupation` | VARCHAR(100) | NULL | - | Current occupation |
-| `education_level` | ENUM('none', 'primary', 'secondary', 'undergraduate', 'graduate', 'doctoral') | NULL | - | Education |
+| `education_level` | ENUM('none', 'primary', 'secondary', 'tertiary', 'university', 'postgraduate') | NULL | - | Education |
+| `religion` | VARCHAR(100) | NULL | - | Religion |
+| `nhis_status` | ENUM('insured', 'uninsured') | NOT NULL | 'uninsured' | NHIS insurance status |
+| `relative_name` | VARCHAR(100) | NULL | - | Relative's name |
+| `relative_relationship` | VARCHAR(50) | NULL | - | Relationship to relative |
+| `relative_phone` | VARCHAR(20) | NULL | - | Relative's phone number |
+| `assessment_time` | TIME | NULL | - | Assessment time |
 | `is_active` | BOOLEAN | NOT NULL | TRUE | Active patient status |
 | `created_at` | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Record creation |
 | `updated_at` | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Last update |
@@ -804,6 +811,127 @@ EXECUTE FUNCTION update_modified_timestamp();
 - **Data at Rest**: AES-256 full database encryption
 - **Backups**: Encrypted with separate keys
 - **Key Management**: External key management service with rotation every 90 days
+
+---
+
+---
+
+## New Tables (Enhanced Requirements)
+
+### Table: `billings`
+
+**Purpose**: Track billing and payment information for services
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| `id` | UUID | PRIMARY KEY | - | Unique billing ID |
+| `patient_id` | UUID | FOREIGN KEY, NOT NULL | - | Associated patient |
+| `consultation_id` | UUID | FOREIGN KEY, NULL | - | Associated consultation (optional) |
+| `billing_date` | DATE | NOT NULL | - | Billing date |
+| `service_type` | ENUM | NOT NULL | - | consultation, home_visit, medication, other |
+| `amount` | DECIMAL(10,2) | NOT NULL | - | Total amount |
+| `nhis_covered` | BOOLEAN | NOT NULL | FALSE | NHIS coverage |
+| `nhis_amount` | DECIMAL(10,2) | NULL | - | NHIS covered amount |
+| `patient_amount` | DECIMAL(10,2) | NULL | - | Patient payable amount |
+| `payment_status` | ENUM | NOT NULL | 'pending' | pending, partial, paid, waived |
+| `payment_date` | DATE | NULL | - | Payment date |
+| `payment_method` | ENUM | NULL | - | cash, mobile_money, bank_transfer, nhis |
+| `invoice_number` | VARCHAR(50) | UNIQUE, NOT NULL | - | Auto-generated invoice number |
+| `notes` | TEXT | NULL | - | Additional notes |
+| `created_by` | UUID | FOREIGN KEY, NOT NULL | - | User who created billing |
+| `created_at` | TIMESTAMP | NOT NULL | - | Creation timestamp |
+| `updated_at` | TIMESTAMP | NOT NULL | - | Update timestamp |
+
+**Indexes**:
+- PRIMARY KEY: `id`
+- FOREIGN KEY: `patient_id` → `patients.id` ON DELETE RESTRICT
+- FOREIGN KEY: `consultation_id` → `consultations.id` ON DELETE SET NULL
+- FOREIGN KEY: `created_by` → `users.id` ON DELETE RESTRICT
+- INDEX: `patient_id`, `consultation_id`, `billing_date`, `payment_status`
+
+### Table: `medications`
+
+**Purpose**: Master list of medications available for prescription
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| `id` | UUID | PRIMARY KEY | - | Unique medication ID |
+| `name` | VARCHAR(200) | UNIQUE, NOT NULL | - | Medication name |
+| `generic_name` | VARCHAR(200) | NULL | - | Generic name |
+| `dosage_form` | ENUM | NULL | - | tablet, capsule, syrup, injection, other |
+| `strength` | VARCHAR(50) | NULL | - | Medication strength |
+| `category` | VARCHAR(100) | NULL | - | Medication category |
+| `is_active` | BOOLEAN | NOT NULL | TRUE | Active status |
+| `created_at` | TIMESTAMP | NOT NULL | - | Creation timestamp |
+| `updated_at` | TIMESTAMP | NOT NULL | - | Update timestamp |
+
+**Indexes**:
+- PRIMARY KEY: `id`
+- UNIQUE: `name`
+- INDEX: `name`, `generic_name`, `category`
+
+### Table: `prescriptions`
+
+**Purpose**: Track patient prescriptions
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| `id` | UUID | PRIMARY KEY | - | Unique prescription ID |
+| `patient_id` | UUID | FOREIGN KEY, NOT NULL | - | Associated patient |
+| `consultation_id` | UUID | FOREIGN KEY, NULL | - | Associated consultation (optional) |
+| `prescription_date` | DATE | NOT NULL | - | Prescription date |
+| `prescribed_by` | UUID | FOREIGN KEY, NOT NULL | - | Prescribing clinician |
+| `medication_id` | UUID | FOREIGN KEY, NOT NULL | - | Medication from master list |
+| `dosage` | VARCHAR(100) | NOT NULL | - | Dosage instructions |
+| `frequency` | VARCHAR(100) | NOT NULL | - | Frequency |
+| `duration` | VARCHAR(100) | NOT NULL | - | Duration |
+| `quantity` | INTEGER | NULL | - | Quantity |
+| `instructions` | TEXT | NULL | - | Additional instructions |
+| `refills` | INTEGER | NOT NULL | 0 | Number of refills |
+| `is_active` | BOOLEAN | NOT NULL | TRUE | Active prescription |
+| `start_date` | DATE | NULL | - | Start date |
+| `end_date` | DATE | NULL | - | End date |
+| `created_at` | TIMESTAMP | NOT NULL | - | Creation timestamp |
+| `updated_at` | TIMESTAMP | NOT NULL | - | Update timestamp |
+
+**Indexes**:
+- PRIMARY KEY: `id`
+- FOREIGN KEY: `patient_id` → `patients.id` ON DELETE RESTRICT
+- FOREIGN KEY: `consultation_id` → `consultations.id` ON DELETE SET NULL
+- FOREIGN KEY: `prescribed_by` → `users.id` ON DELETE RESTRICT
+- FOREIGN KEY: `medication_id` → `medications.id` ON DELETE RESTRICT
+- INDEX: `patient_id`, `consultation_id`, `prescription_date`, `is_active`
+
+### Table: `home_visits`
+
+**Purpose**: Track home visits to clients
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| `id` | UUID | PRIMARY KEY | - | Unique home visit ID |
+| `patient_id` | UUID | FOREIGN KEY, NULL | - | Associated patient (optional) |
+| `client_name` | VARCHAR(200) | NOT NULL | - | Client name |
+| `age` | INTEGER | NULL | - | Client age |
+| `sex` | ENUM | NULL | - | male, female, other |
+| `community_location` | VARCHAR(200) | NOT NULL | - | Community or location |
+| `contact` | VARCHAR(20) | NOT NULL | - | Contact number |
+| `visit_date` | DATE | NOT NULL | - | Visit date |
+| `visit_time` | TIME | NULL | - | Visit time |
+| `clinician_id` | UUID | FOREIGN KEY, NOT NULL | - | Visiting clinician |
+| `diagnosis_condition` | TEXT | NULL | - | Diagnosis or condition |
+| `medication_prescription` | TEXT | NULL | - | Medication or prescription |
+| `observations` | TEXT | NULL | - | Observations seen |
+| `impression` | TEXT | NULL | - | Clinical impression |
+| `management` | TEXT | NULL | - | Management plan |
+| `recommendation` | TEXT | NULL | - | Recommendations |
+| `created_at` | TIMESTAMP | NOT NULL | - | Creation timestamp |
+| `updated_at` | TIMESTAMP | NOT NULL | - | Update timestamp |
+
+**Indexes**:
+- PRIMARY KEY: `id`
+- FOREIGN KEY: `patient_id` → `patients.id` ON DELETE SET NULL
+- FOREIGN KEY: `clinician_id` → `users.id` ON DELETE RESTRICT
+- INDEX: `patient_id`, `clinician_id`, `visit_date`
 
 ---
 
