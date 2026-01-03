@@ -110,15 +110,131 @@ export interface ToastNotification {
 }
 
 export interface DashboardStats {
-  totalPatients?: number
-  consultationsThisMonth?: number
-  pendingReviews?: number
+  totalPatients: number
+  insuredPatients: number
+  uninsuredPatients: number
+  consultationsThisMonth: number
+  homeVisitsThisMonth: number
+  activePrescriptions: number
+  totalPrescriptionsThisMonth: number
+  totalRevenueThisMonth: number
+  totalRevenueAllTime: number
+  pendingPaymentsAmount: number
+  upcomingNextVisits: number
+  totalBillingsThisMonth: number
   activeClinicians?: number
+  myConsultationsThisMonth?: number
+  myHomeVisitsThisMonth?: number
+  myActivePrescriptions?: number
+  myPendingBillings?: number
+}
+
+export interface DashboardBilling {
+  id: string
+  patient_id: string
+  patient_name: string
+  amount: number
+  payment_status: string
+  billing_date: string
+  invoice_number: string
+  service_type: string
+}
+
+export interface DashboardPrescription {
+  id: string
+  patient_id: string
+  patient_name: string
+  medication_name: string
+  prescribed_by_name: string
+  prescription_date: string
+  is_active: boolean
+  dosage: string
+  frequency: string
+}
+
+export interface DashboardHomeVisit {
+  id: string
+  patient_id?: string
+  client_name: string
+  patient_name?: string
+  community_location: string
+  visit_date: string
+  visit_time?: string
+  clinician_name: string
+}
+
+export interface DashboardNextVisit {
+  id: string
+  consultation_id: string
+  next_visit_date: string
+  next_visit_purpose?: string
+  patient_name: string
+  clinician_name: string
+}
+
+export interface DashboardAlerts {
+  overduePayments: Array<{
+    id: string
+    patient_name: string
+    amount: number
+    billing_date: string
+    invoice_number: string
+  }>
+  upcomingVisits: Array<{
+    id: string
+    consultation_id: string
+    next_visit_date: string
+    patient_name: string
+  }>
+  expiringPrescriptions: Array<{
+    id: string
+    patient_name: string
+    medication_name: string
+    end_date: string
+  }>
+  incompleteConsultations: Array<{
+    id: string
+    patient_name: string
+    consultation_date: string
+    missing_mse: boolean
+    missing_plan: boolean
+  }>
+}
+
+export interface DashboardCharts {
+  serviceActivity: {
+    labels: string[]
+    consultations: number[]
+    homeVisits: number[]
+    prescriptions: number[]
+  }
+  revenue: {
+    labels: string[]
+    totalRevenue: number[]
+    paid: number[]
+    pending: number[]
+  }
+  nhisCoverage: {
+    insured: number
+    uninsured: number
+  }
+  paymentStatus: {
+    paid: number
+    pending: number
+    partial: number
+    waived: number
+  }
 }
 
 export interface DashboardResponse {
   stats: DashboardStats
   recentConsultations: Consultation[]
+  recentBillings: DashboardBilling[]
+  recentPrescriptions: DashboardPrescription[]
+  recentHomeVisits: DashboardHomeVisit[]
+  upcomingNextVisits: DashboardNextVisit[]
+  alerts: DashboardAlerts
+  charts: DashboardCharts
 }
 
 export interface Billing {
