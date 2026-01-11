@@ -115,6 +115,21 @@
           </NuxtLink>
 
           <NuxtLink
+            to="/reports"
+            :class="[
+              'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+              route.path.startsWith('/reports') 
+                ? 'bg-indigo-800 text-white' 
+                : 'text-indigo-100 hover:bg-indigo-600 hover:text-white'
+            ]"
+          >
+            <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Reports
+          </NuxtLink>
+
+          <NuxtLink
             v-if="user?.role === 'admin'"
             to="/admin/users"
             :class="[
@@ -240,6 +255,7 @@ const pageTitle = computed(() => {
   if (path.startsWith('/prescriptions')) return 'Prescriptions'
   if (path.startsWith('/billings')) return 'Billings'
   if (path.startsWith('/medications')) return 'Medications'
+  if (path.startsWith('/reports')) return 'Reports'
   if (path.startsWith('/admin')) return 'Admin Panel'
   return 'Mental Health Consultation'
 })

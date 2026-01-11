@@ -365,6 +365,57 @@ class ConsultationController extends ApiController
     }
 
     /**
+     * Lock (complete) the specified consultation
+     */
+    public function lock(Request $request, Consultation $consultation): JsonResponse
+    {
+        $user = $request->user();
+
+        // Check access
+        if ($user->role === 'clinician') {
+            $hasAccess = $consultation->primary_clinician_id === $user->id
+                || $consultation->collaborators()->where('clinician_id', $user->id)->exists();
+
+            if (!$hasAccess) {
+                return $this->error('Access denied', [], 403);
+            }
+        }
+
+        // Check if already locked
+        if ($consultation->is_locked) {
+            return $this->error('Consultation is already completed', [], 400);
+        }
+
+        // Lock the consultation
+        $consultation->is_locked = true;
+        $consultation->save();
+
+        $consultation->load(['patient', 'primaryClinician', 'collaborators.clinician']);
+
+        // Add computed fields for frontend compatibility
+        $patientName = 'N/A';
+        if ($consultation->patient) {
+            $patientName = trim(($consultation->patient->first_name ?? '') . ' ' . ($consultation->patient->last_name ?? ''));
+            if (empty($patientName)) {
+                $patientName = 'N/A';
+            }
+        }
+
+        $clinicianName = 'N/A';
+        if ($consultation->primaryClinician) {
+            $clinicianName = trim(($consultation->primaryClinician->first_name ?? '') . ' ' . ($consultation->primaryClinician->last_name ?? ''));
+            if (empty($clinicianName)) {
+                $clinicianName = 'N/A';
+            }
+        }
+
+        $consultation->patient_name = $patientName;
+        $consultation->clinician_name = $clinicianName;
+
+        return $this->success($consultation, 'Consultation completed successfully');
+    }
+
+    /**
      * Remove the specified consultation (admin only)
      */
     public function destroy(Request $request, Consultation $consultation): JsonResponse

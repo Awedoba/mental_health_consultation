@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Consultation sub-resources
     Route::prefix('consultations/{consultation}')->group(function () {
+        Route::post('/lock', [\App\Http\Controllers\Api\ConsultationController::class, 'lock']);
         Route::post('/mse', [\App\Http\Controllers\Api\MentalStateExamController::class, 'store']);
         Route::get('/mse', [\App\Http\Controllers\Api\MentalStateExamController::class, 'show']);
         Route::apiResource('diagnoses', \App\Http\Controllers\Api\DiagnosisController::class);

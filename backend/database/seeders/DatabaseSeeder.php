@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             'id' => (string) Str::uuid(),
             'username' => 'admin',
             'email' => 'admin@example.com',
-            'password' => Hash::make('Admin123!@#'),
+            'password' => Hash::make('password'),
             'first_name' => 'System',
             'last_name' => 'Administrator',
             'role' => 'admin',

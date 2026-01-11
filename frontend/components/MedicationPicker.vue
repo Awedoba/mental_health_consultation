@@ -15,6 +15,10 @@
         @input="handleSearch"
         @focus="showDropdown = true"
         @blur="handleBlur"
+        @keydown.down.prevent="navigateOptions('down')"
+        @keydown.up.prevent="navigateOptions('up')"
+        @keydown.enter.prevent="selectHighlightedOption"
+        data-testid="medication-search-input"
       />
       <div v-if="loading" class="absolute right-3 top-2.5">
         <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -25,7 +29,7 @@
     </div>
 
     <!-- Selected Medication Display -->
-    <div v-if="selectedMedication" class="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-md">
+    <div v-if="selectedMedication" class="mt-2 p-3 bg-indigo-50 border border-indigo-200 rounded-md" data-testid="selected-medication-display">
       <div class="flex justify-between items-start">
         <div>
           <p class="font-medium text-indigo-900">{{ selectedMedication.name }}</p>
@@ -43,6 +47,7 @@
           type="button"
           @click="clearSelection"
           class="text-indigo-600 hover:text-indigo-800 text-sm"
+          data-testid="clear-medication-btn"
         >
           Clear
         </button>
@@ -53,15 +58,24 @@
     <div
       v-if="showDropdown && (medications.length > 0 || searchQuery)"
       class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+      role="listbox"
+      data-testid="medication-dropdown"
     >
       <div v-if="medications.length === 0 && !loading" class="p-4 text-sm text-gray-500 text-center">
         No medications found
       </div>
       <div
-        v-for="medication in medications"
+        v-for="(medication, index) in medications"
         :key="medication.id"
         @mousedown="selectMedication(medication)"
-        class="p-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+        @click="selectMedication(medication)"
+        :class="[
+          'p-3 cursor-pointer border-b border-gray-100 last:border-b-0',
+          highlightedIndex === index ? 'bg-indigo-50' : 'hover:bg-indigo-50'
+        ]"
+        role="option"
+        :aria-selected="highlightedIndex === index"
+        data-testid="medication-option"
       >
         <p class="font-medium text-gray-900">{{ medication.name }}</p>
         <p v-if="medication.generic_name" class="text-sm text-gray-600">
@@ -106,6 +120,7 @@ const medications = ref<Medication[]>([])
 const selectedMedication = ref<Medication | null>(null)
 const showDropdown = ref(false)
 const loading = ref(false)
+const highlightedIndex = ref(-1)
 
 const handleSearch = useDebounceFn(async () => {
   if (!searchQuery.value || searchQuery.value.length < 2) {
@@ -118,6 +133,7 @@ const handleSearch = useDebounceFn(async () => {
   
   if (result.success) {
     medications.value = result.data
+    highlightedIndex.value = -1 // Reset highlight on new results
   }
   
   loading.value = false
@@ -129,6 +145,7 @@ const selectMedication = (medication: Medication) => {
   emit('update:modelValue', medication.id)
   emit('medication-selected', medication)
   showDropdown.value = false
+  highlightedIndex.value = -1
 }
 
 const clearSelection = () => {
@@ -136,12 +153,41 @@ const clearSelection = () => {
   searchQuery.value = ''
   emit('update:modelValue', undefined)
   showDropdown.value = false
+  highlightedIndex.value = -1
+}
+
+const navigateOptions = (direction: 'up' | 'down') => {
+  if (!showDropdown.value || medications.value.length === 0) {
+    showDropdown.value = true
+    return
+  }
+
+  if (direction === 'down') {
+    if (highlightedIndex.value < medications.value.length - 1) {
+      highlightedIndex.value++
+    }
+  } else {
+    if (highlightedIndex.value > 0) {
+      highlightedIndex.value--
+    }
+  }
+}
+
+const selectHighlightedOption = () => {
+  if (highlightedIndex.value >= 0 && highlightedIndex.value < medications.value.length) {
+    selectMedication(medications.value[highlightedIndex.value])
+  } else if (medications.value.length > 0) {
+    // If nothing highlighted but enter pressed, select first option? 
+    // Or just do nothing. Let's do nothing to be safe, or maybe select first is intuitive if user typed exact name?
+    // For now, only select if highlighted.
+  }
 }
 
 const handleBlur = () => {
   // Delay to allow click events on dropdown items
   setTimeout(() => {
     showDropdown.value = false
+    highlightedIndex.value = -1
   }, 200)
 }
 

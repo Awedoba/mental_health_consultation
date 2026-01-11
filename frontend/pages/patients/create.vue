@@ -2,7 +2,15 @@
   <div class="min-h-screen bg-gray-50">
     <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
-        <h1 class="text-3xl font-bold text-gray-900 mb-6">Create New Patient</h1>
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold text-gray-900">Create New Patient</h1>
+          <NuxtLink
+            to="/patients"
+            class="text-gray-600 hover:text-gray-900"
+          >
+            Cancel
+          </NuxtLink>
+        </div>
 
         <div class="bg-white shadow rounded-lg p-6">
           <form @submit.prevent="handleSubmit">
